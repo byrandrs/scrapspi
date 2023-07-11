@@ -1,8 +1,6 @@
 selenium
 bs4
 requests
-urllib3
-urllib
 regex
 pandas
 nltk
@@ -10,3 +8,5 @@ pymysql
 psycopg2
 sqlalchemy
 numpy
+selenium
+webdriver_manager
