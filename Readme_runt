@@ -1,0 +1,6 @@
+Descargar e instalar pytesseract: https://tesseract-ocr.github.io/tessdoc/Home.html
+pip install pytesseract
+Ver Guia:
+https://omes-va.com/como-instalar-tesseract-orc-y-pytesseract-en-windows/
+*Tener en cuenta ruta de acceso a la aplicacion
+*Dar permisos de lectura y ejecucion
