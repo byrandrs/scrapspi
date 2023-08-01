@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extracción de Texto de Imágenes</title>
+    <!-- Agrega este script en tu archivo index.html -->
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-messaging.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+              .then(function(registration) {
+                console.log('Service Worker registrado con éxito:', registration.scope);
+              })
+              .catch(function(error) {
+                console.error('Error al registrar el Service Worker:', error);
+              });
+          });
+        }
+
+        // Configura Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyB0AlyJHzTZK3QR5o9-9NN3O2-Kuvp3uHk",
+            authDomain: "scrap-rnt.firebaseapp.com",
+            databaseURL: "https://scrap-rnt-default-rtdb.firebaseio.com",
+            projectId: "scrap-rnt",
+            storageBucket: "scrap-rnt.appspot.com",
+            messagingSenderId: "525166485488",
+            appId: "1:525166485488:web:9a86d1d4027bdabdfdc735",
+            measurementId: "G-SS0RBSBH09"
+        };
+        firebase.initializeApp(firebaseConfig);
+      
+        // Habilita las notificaciones
+        const messaging = firebase.messaging();
+        messaging.requestPermission()
+          .then(function() {
+            console.log('Notification permission granted.');
+            return messaging.getToken();
+          })
+          .then(function(token) {
+            console.log('Token:', token);
+          })
+          .catch(function(err) {
+            console.log('Unable to get permission to notify.', err);
+          });
+      
+        // Escucha las notificaciones
+        messaging.onMessage(function(payload) {
+          console.log('Message received:', payload);
+      
+          // Actualiza la vista con los nuevos datos recibidos
+          var lista = document.getElementById('lista');
+          var newItem = document.createElement('li');
+          newItem.innerHTML = `<strong>${payload.data.key}</strong>: ${payload.data.text}<br><img src="data:image/png;base64,${payload.data.image}" alt="Imagen">`;
+          lista.appendChild(newItem);
+        });
+
+         // Configura Socket.IO para escuchar eventos de nuevos elementos agregados
+         const socket = io.connect(window.location.origin);
+        socket.on('connect', function () {
+            console.log('Conectado al servidor Socket.IO');
+        });
+
+        // Escucha las notificaciones de Firebase Messaging
+        messaging.onMessage(function (payload) {
+            console.log('Message received:', payload);
+
+            // Actualiza la vista con los nuevos datos recibidos
+            const lista = document.getElementById('lista');
+            const newItem = document.createElement('li');
+            newItem.innerHTML = `<strong>${payload.data.key}</strong>: ${payload.data.text}<br><img src="data:image/png;base64,${payload.data.image}" alt="Imagen">`;
+            lista.appendChild(newItem);
+        });
+
+        function uploadImage() {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Por favor, seleccione una imagen antes de enviar.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/extract_text', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                const textDiv = document.getElementById('text');
+                const imageDiv = document.getElementById('processed-image');
+
+                textDiv.textContent = data.text;
+                imageDiv.src = 'data:image/png;base64,' + data.image;
+
+                resultDiv.style.display = 'block';
+            })
+            .catch(error => {
+                alert('Ha ocurrido un error: ' + error.message);
+            });
+        }
+
+        function eliminarElemento(key) {
+            const confirmar = confirm('¿Estás seguro de que deseas eliminar este elemento?');
+            if (confirmar) {
+                fetch(`/eliminar/${key}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.mensaje);
+                    location.reload(); // Actualizar la página después de eliminar
+                })
+                .catch(error => {
+                    alert('Ha ocurrido un error al eliminar el elemento: ' + error.message);
+                });
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Extracción de Texto de Imágenes</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file" name="file" accept=".png, .jpg, .jpeg, .gif">
+        <button type="button" onclick="uploadImage()">Enviar</button>
+    </form>
+
+    <div id="result" style="display:none;">
+        <h2>Texto extraído:</h2>
+        <p id="text"></p>
+        <h2>Imagen procesada:</h2>
+        <img id="processed-image" alt="Imagen procesada">
+    </div>
+
+    <!-- Agrega esta lista para mostrar los nuevos elementos agregados -->
+    <h1>Lista de Nuevos Elementos</h1>
+    <ul id="lista"></ul>
+
+
+    <h1>Lista desde Firebase</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Imagen</th>
+                <th>Texto</th>
+                <th>Editar</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, elemento in lista.items() %}
+            <tr>
+                <td><img src="data:image/png;base64,{{ elemento.image }}" alt="Imagen"></td>
+                <td>{{ elemento.text }}</td>
+                <td><a href="{{ url_for('editar_elemento', key=key) }}">Editar</a></td>
+                <td><button onclick="eliminarElemento('{{ key }}')">Eliminar</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    
+
+    <script>
+        
+    </script>
+
+    <script>
+       
+    </script>
+
+    <script>
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Elemento</title>
+</head>
+<body>
+    <h1>Editar Elemento "{{ key }}"</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label for="nuevo_valor">Nuevo Valor:</label>
+        <input type="text" name="nuevo_valor" value="{{ valor }}" required>
+        <br>
+        <label for="file">Nueva Imagen:</label>
+        <input type="file" name="file" accept=".png, .jpg, .jpeg, .gif">
+        <br>
+        <button type="submit">Guardar</button>
+    </form>
+</body>
+</html>
